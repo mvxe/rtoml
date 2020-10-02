@@ -1,0 +1,6 @@
+[submodule "deps/tsl"]
+	path = deps/tsl
+	url = https://github.com/Tessil/ordered-map
+[submodule "deps/toml"]
+	path = deps/toml
+	url = https://github.com/ToruNiina/toml11
