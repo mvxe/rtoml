@@ -38,7 +38,7 @@ Furthermore, you can add comments to both entries and maps that are then visible
     mapa["x"]["xx"].comments.push_back("comment 2");
 ~~~
 
-Once all entries are initialized we can now load a file:
+Once all entries have been initialized we can now load a file. This searches the file for entries matching those that have been initialized, and if found replaces the variable values with those from the file. Other entries are ignored.
 ~~~cpp
     mapa.load();
 ~~~
@@ -50,8 +50,7 @@ load takes two optional arguments:
 &nbsp;&nbsp;&nbsp;&nbsp; `std::string confFilename=""`  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if specified, this overrides the top object's filename  
 
-Members initialized after a file was loaded overwrite entries loaded from the file.  
-NOTE: you cannot use `.get<type>` for uninitialized entries even thought they are present in the loaded file.  
+NOTE: you cannot use `.get<type>` for uninitialized entries even thought they were present in the loaded file.  
 NOTE: you cannot load a file unless at least one entry has been added to the map object (would be pointless anyway without .get).
 
 At this point you use and modify your variables as you see fit without the need to call any objects in the library.
