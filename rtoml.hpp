@@ -188,7 +188,7 @@ namespace rtoml{
             }
             void save(bool clear=false, std::string confFilename=""){   
                                                             // if clear is true and the called object is a map, extra entries in the file will be deleted,
-                                                            //      otherwise the new file will still contain old entries (reformatted though)
+                                                            //      otherwise the new file will still contain unused entries (reformatted though)
                                                             // if confFilename is specified, it overrides the top object's filename
                 if(map==nullptr && var==nullptr)            // not initialized
                     throw std::invalid_argument("Error in vsr.save() with key "+_debug_getFullKeyString()+": trying to save an entry that was not initialized.");

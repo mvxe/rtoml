@@ -4,7 +4,7 @@
 
 int main(){
     int a=4;
-    int b=57;
+    double b=57;
     
     rtoml::vsr mapa("a.toml");
     mapa["abcd"]=a;
@@ -21,7 +21,7 @@ int main(){
     double ha=*mapa["abcd"].get<int>();
     std::string be=*mapa["x"]["xx"].get<std::string>();
     std::cerr<<ha<<" "<<be<<"\n";
-    
+    std::cerr<<b<<"\n";
     std::cerr<<"fname for mapa: "<<mapa.getConfFilename()<<"\n";
     
     //mapa.load(false, "b.toml");
