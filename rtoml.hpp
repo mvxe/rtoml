@@ -139,9 +139,8 @@ namespace rtoml{
             void _loadFromToml(toml::basic_value<toml::preserve_comments, tsl::ordered_map>& data, bool trip){
                 if(map!=nullptr){                           // initialized as a map - call load of all entries
                     for(auto& [key, val]:*map){
-                        if(trip)  val._loadFromToml(toml::find(data,key), trip);
-                        else try {val._loadFromToml(toml::find(data,key), trip);}   // we ignore errors
-                        catch(std::exception& e){}
+                        try {val._loadFromToml(toml::find(data,key), trip);}   
+                        catch(std::exception& e){if(trip)throw;}
                     } 
                     
                 }else{                                      // initialized as a variable - load it
@@ -188,7 +187,7 @@ namespace rtoml{
                 else return key;
             }
             void save(bool clear=false, std::string confFilename=""){   
-                                                            // if clear is true and the called object is a map, any entry loaded from the file thats not in this map is deleted,
+                                                            // if clear is true and the called object is a map, extra entries in the file will be deleted,
                                                             //      otherwise the new file will still contain old entries (reformatted though)
                                                             // if confFilename is specified, it overrides the top object's filename
                 if(map==nullptr && var==nullptr)            // not initialized
@@ -210,8 +209,9 @@ namespace rtoml{
                 saveFile.close();
             }
             void load(bool trip=false, std::string confFilename=""){     
-                                                            // if trip is true, and the file does not contain all of the requested variables, an exception will be thrown
-                                                            //      otherwise, missing entries will be ignored. Extra entries are always ignored
+                                                            // if trip is true, and the file does not contain all of the initialized variables or does not exist, 
+                                                            //      an exception will be thrown; otherwise, missing file/entries will be ignored
+                                                            //      extra entries are always ignored
                                                             // if confFilename is specified, it overrides the top object's filename
                 if(map==nullptr && var==nullptr)            // not initialized
                     throw std::invalid_argument("Error in vsr.load() with key "+_debug_getFullKeyString()+": trying to load an entry that was not initialized.");
@@ -221,7 +221,8 @@ namespace rtoml{
                     throw std::invalid_argument("Error in vsr.load() with key "+_debug_getFullKeyString()+": the confFilename was not provided.");
                     
                 toml::basic_value<toml::preserve_comments, tsl::ordered_map> data;
-                data = toml::parse<toml::preserve_comments, tsl::ordered_map>(confFilename);    // this will throw an error on failure
+                try {data = toml::parse<toml::preserve_comments, tsl::ordered_map>(confFilename);}   
+                catch(std::exception& e){if(trip)throw;}
                 
                 _loadFromToml(_getSubTomlTable(data), trip);
             }

@@ -16,6 +16,8 @@ int main(){
     mapa["x"]["yy"]["xxx"]=b;
     mapa["x"]["yy"]["xxx"].comments.push_back(" Some random var.");
     
+    mapa.load(false);
+    
     double ha=*mapa["abcd"].get<int>();
     std::string be=*mapa["x"]["xx"].get<std::string>();
     std::cerr<<ha<<" "<<be<<"\n";
@@ -23,6 +25,6 @@ int main(){
     std::cerr<<"fname for mapa: "<<mapa.getConfFilename()<<"\n";
     
     //mapa.load(false, "b.toml");
-    mapa.load(false);
+    
     mapa.save(true);
 }
