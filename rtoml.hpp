@@ -229,7 +229,7 @@ namespace rtoml{
                 
                 _loadFromToml(_getSubTomlTable(data), trip);
             }
-    }
+    };
 }
 
 #endif //RTOML_H
