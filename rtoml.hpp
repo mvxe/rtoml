@@ -29,7 +29,7 @@
 #include <stack>
 #include <stdexcept>
 #include <map>
-#include "deps/tsl/ordered_map.h"
+#include ".tsl/ordered_map.h"
 #include "deps/toml/toml.hpp"
 
 namespace rtoml{
