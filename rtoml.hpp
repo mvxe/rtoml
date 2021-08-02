@@ -21,6 +21,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+ 
+#ifndef RTOML_H
+#define RTOML_H
 
 #include <string>
 #include <stack>
@@ -226,6 +229,8 @@ namespace rtoml{
                 
                 _loadFromToml(_getSubTomlTable(data), trip);
             }
-    };
+    }
 }
+
+#endif //RTOML_H
 
