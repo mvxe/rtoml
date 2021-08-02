@@ -30,7 +30,7 @@
 #include <stdexcept>
 #include <map>
 #include ".tsl/ordered_map.h"
-#include "deps/toml/toml.hpp"
+#include ".toml/toml.hpp"
 
 namespace rtoml{
     std::string format(toml::basic_value<toml::preserve_comments, tsl::ordered_map>& data){   // fixes indentation, removes empty comments (needed to prevent inline)
