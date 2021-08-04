@@ -73,5 +73,7 @@ Note that each non-variable member of the map is a map itself, so you can call `
 This saves only the entries in Map2. Note that in this case, you should specify the filename, otherwise the top object's (mapa) filename will be used.
 
 
-An example is given in example.cpp.  
+An usage example is given in example.cpp.
 
+NOTE: supported variable types: arithmetic types (see `std::is_arithmetic`) and `std::string`  
+however custom template classes with `typename T` (which has to be arithmetic or string) are supported if they have `T get()` and `set(T var)` functions defined
