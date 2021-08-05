@@ -177,6 +177,7 @@ namespace rtoml{
                  exmap=true;
                  return *this;
             }
+            vsr& operator [](std::string _key) {return (*this)[_key.c_str()];}
             vsr& operator [](const char* _key) {            // find entry in map: use only if it has not been already intialized as a variable
                 if(var!=nullptr) throw std::invalid_argument("Error in vsr with key "+_debug_getFullKeyString()+": this entry is already initialized as a variable.");
                 if(map==nullptr) map=new std::map<std::string, vsr>;

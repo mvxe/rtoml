@@ -21,6 +21,9 @@ int main(){
     mapb["xxx"].comments.push_back(" Some random var.");
     double c=534;
     mapb["sd"]["zzz"]=c;
+    std::string entryname="entry3";
+    mapb["sd"][entryname]=a;
+    mapb["sd"][entryname].comments.push_back(" Something about entry3");
     
     
     mapa.load(false);
