@@ -12,9 +12,16 @@ int main(){
     mapa["x"]["xx"]=st;
     mapa["x"]["xx"].comments.push_back(" hello there!");
     mapa["x"]["xx"].comments.push_back(" sec line.");
+    
+    
+    rtoml::vsr mapb;
+    mapa["x"]["yy"]=mapb;
     mapa["x"]["yy"].comments.push_back(" a section.");
-    mapa["x"]["yy"]["xxx"]=b;
-    mapa["x"]["yy"]["xxx"].comments.push_back(" Some random var.");
+    mapb["xxx"]=b;
+    mapb["xxx"].comments.push_back(" Some random var.");
+    double c=534;
+    mapb["sd"]["zzz"]=c;
+    
     
     mapa.load(false);
     

@@ -55,6 +55,7 @@ namespace rtoml{
             };
             _BVar* var{nullptr};
             std::map<std::string, vsr>* map{nullptr};
+            bool exmap{false};      //if true, it is an external map (do not deallocate in destructor)
             vsr* parent{nullptr};
             std::string key;        // save filename if parent==nullptr, else the key; redundant but reimplementing map for saving a bit of space is too much work
             std::string _debug_getFullKeyString(){
@@ -159,7 +160,7 @@ namespace rtoml{
             vsr(){}
             vsr(std::string confFilename):key(confFilename){}   // you can also initialize the top object with the load/save filename
             ~vsr(){
-                if(map!=nullptr) delete map;
+                if(map!=nullptr && !exmap) delete map;
                 if(var!=nullptr) delete var;
             }
             template <typename T> T& operator = (T& nvar){  // constructor, set it equal to a variable to initialize it to that variable
@@ -167,6 +168,14 @@ namespace rtoml{
                 if(var==nullptr) var=new _Var<T>(nvar);
                 else ((_Var<T>*)(var))->var=&nvar;
                 return *(((_Var<T>*)(var))->var); 
+            }
+            vsr& operator = (vsr& nvar){                    // constructor, set it equal to a another vsr (this makes it point to that vsr's map)
+                 if(var!=nullptr) throw std::invalid_argument("Error in vsr with key "+_debug_getFullKeyString()+": this entry is already initialized as a variable.");
+                 if(map!=nullptr && !exmap) delete map;
+                 if(nvar.map==nullptr) nvar.map=new std::map<std::string, vsr>;     // in case the external vsr is empty
+                 map=nvar.map;
+                 exmap=true;
+                 return *this;
             }
             vsr& operator [](const char* _key) {            // find entry in map: use only if it has not been already intialized as a variable
                 if(var!=nullptr) throw std::invalid_argument("Error in vsr with key "+_debug_getFullKeyString()+": this entry is already initialized as a variable.");

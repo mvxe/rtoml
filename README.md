@@ -72,6 +72,15 @@ Note that each non-variable member of the map is a map itself, so you can call `
 ~~~
 This saves only the entries in Map2. Note that in this case, you should specify the filename, otherwise the top object's (mapa) filename will be used.
 
+It is also possible to assign one map to another - this makes the entry point to the other map. NOTE: if the assigned map is destroyed and the other map tries to access it, it will segfault.
+~~~cpp
+    rtoml::vsr mapa;
+    rtoml::vsr mapb;
+    mapa["Map1"]["Map2"]=mapb;
+    int a;
+    mapb["entry1"]=a;   // equivalent to mapa["Map1"]["Map2"]["entry1"]=a;
+~~~
+
 
 An usage example is given in example.cpp.
 
