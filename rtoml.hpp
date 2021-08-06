@@ -46,11 +46,13 @@ namespace rtoml{
                     _Var(T& ovar): var(&ovar){}
                     void save(toml::basic_value<toml::preserve_comments, tsl::ordered_map>& dst){
                         if constexpr(std::is_arithmetic<T>::value || std::is_same<T, std::string>::value) dst=*var;
+                        else if constexpr(std::is_pointer<T>::value) dst=(*var)->get();
                         else dst=var->get();
                     }
                     void load(toml::basic_value<toml::preserve_comments, tsl::ordered_map>& src){
                         if constexpr(std::is_arithmetic<T>::value || std::is_same<T, std::string>::value) *var=toml::get<T>(src);
-                        else var->set(toml::get<decltype(var->get())>(src));     //if type is neither arithmetic or string, assume it's a class with get()/set()
+                        else if constexpr(std::is_pointer<T>::value) (*var)->set(toml::get<decltype((*var)->get())>(src));  // if it's a pointer to a class with get()/set()
+                        else var->set(toml::get<decltype(var->get())>(src));                                                // if it's a class with get()/set()
                     }
             };
             _BVar* var{nullptr};
