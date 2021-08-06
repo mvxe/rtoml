@@ -173,12 +173,14 @@ namespace rtoml{
                  if(var!=nullptr) throw std::invalid_argument("Error in vsr with key "+_debug_getFullKeyString()+": this entry is already initialized as a variable.");
                  if(map!=nullptr && !exmap) delete map;
                  if(nvar.map==nullptr) nvar.map=new std::map<std::string, vsr>;     // in case the external vsr is empty
+                 if(nvar.parent!=nullptr) throw std::invalid_argument("Error in vsr with key "+_debug_getFullKeyString()+": this map has already been assigned and has a parent");
                  map=nvar.map;
+                 nvar.parent=parent;
+                 nvar.key=key;
                  exmap=true;
                  return *this;
             }
-            vsr& operator [](std::string _key) {return (*this)[_key.c_str()];}
-            vsr& operator [](const char* _key) {            // find entry in map: use only if it has not been already intialized as a variable
+            vsr& operator [](std::string _key) {            // find entry in map: use only if it has not been already intialized as a variable
                 if(var!=nullptr) throw std::invalid_argument("Error in vsr with key "+_debug_getFullKeyString()+": this entry is already initialized as a variable.");
                 if(map==nullptr) map=new std::map<std::string, vsr>;
                 (*map)[_key];
@@ -207,11 +209,14 @@ namespace rtoml{
             void save(bool clear=false, std::string confFilename=""){   
                                                             // if clear is true and the called object is a map, extra entries in the file will be deleted,
                                                             //      otherwise the new file will still contain unused entries (reformatted though)
-                                                            // if confFilename is specified, it overrides the top object's filename
+                                                            // if confFilename is specified, it overrides the filename
                 if(map==nullptr && var==nullptr)            // not initialized
                     throw std::invalid_argument("Error in vsr.save() with key "+_debug_getFullKeyString()+": trying to save an entry that was not initialized.");
-                if(confFilename.empty())
+                bool depth=false;
+                if(confFilename.empty()){
                     confFilename=this->getConfFilename();
+                    depth=true;
+                }
                 if(confFilename.empty())
                     throw std::invalid_argument("Error in vsr.save() with key "+_debug_getFullKeyString()+": the confFilename was not provided.");
                 
@@ -219,7 +224,7 @@ namespace rtoml{
                 try{ data = toml::parse<toml::preserve_comments, tsl::ordered_map>(confFilename); }  // read configuration
                 catch(std::runtime_error e){}               // if it doesn't exist, just ignore
                 
-                _saveToToml(_getSubTomlTable(data), clear);
+                _saveToToml(depth?_getSubTomlTable(data):data, clear);
                 
                 std::ofstream saveFile;
                 saveFile.open(confFilename);
@@ -230,11 +235,14 @@ namespace rtoml{
                                                             // if trip is true, and the file does not contain all of the initialized variables or does not exist, 
                                                             //      an exception will be thrown; otherwise, missing file/entries will be ignored
                                                             //      extra entries are always ignored
-                                                            // if confFilename is specified, it overrides the top object's filename
+                                                            // if confFilename is specified, it overrides the filename
                 if(map==nullptr && var==nullptr)            // not initialized
                     throw std::invalid_argument("Error in vsr.load() with key "+_debug_getFullKeyString()+": trying to load an entry that was not initialized.");
-                if(confFilename.empty())
+                bool depth=false;
+                if(confFilename.empty()){
                     confFilename=this->getConfFilename();
+                    depth=true;
+                }
                 if(confFilename.empty())
                     throw std::invalid_argument("Error in vsr.load() with key "+_debug_getFullKeyString()+": the confFilename was not provided.");
                     
@@ -242,7 +250,7 @@ namespace rtoml{
                 try {data = toml::parse<toml::preserve_comments, tsl::ordered_map>(confFilename);}   
                 catch(std::exception& e){if(trip)throw;}
                 
-                _loadFromToml(_getSubTomlTable(data), trip);
+                _loadFromToml(depth?_getSubTomlTable(data):data, trip);
             }
     };
 }

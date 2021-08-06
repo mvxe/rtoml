@@ -37,4 +37,7 @@ int main(){
     //mapa.load(false, "b.toml");
     
     mapa.save(true);
+    c=100;
+    mapb.save(true);
+    mapb.save(true, "b.toml");
 }
