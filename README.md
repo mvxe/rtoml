@@ -95,7 +95,9 @@ It is also possible to assign one map to another - this makes the entry point to
     int a;
     mapb["entry1"]=a;   // equivalent to mapa["Map1"]["Map2"]["entry1"]=a;
 ~~~
-Assigning the map again will throw an error. The map can have at most one parent.
+Assigning the map again will throw an error. The map can have at most one parent.  
+
+It is also possible to change the top object's save filename by using `void vsr::setConfFilename(std::string confFilename)`, and get it with `std::string vsr::getConfFilename()`. This can be called at any depth.
 
 
 An usage example is given in example.cpp.
