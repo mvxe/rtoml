@@ -214,11 +214,8 @@ namespace rtoml{
                                                             // if confFilename is specified, it overrides the filename
                 if(map==nullptr && var==nullptr)            // not initialized
                     throw std::invalid_argument("Error in vsr.save() with key "+_debug_getFullKeyString()+": trying to save an entry that was not initialized.");
-                bool depth=false;
-                if(confFilename.empty()){
+                if(confFilename.empty())
                     confFilename=this->getConfFilename();
-                    depth=true;
-                }
                 if(confFilename.empty())
                     throw std::invalid_argument("Error in vsr.save() with key "+_debug_getFullKeyString()+": the confFilename was not provided.");
                 
@@ -226,7 +223,7 @@ namespace rtoml{
                 try{ data = toml::parse<toml::preserve_comments, tsl::ordered_map>(confFilename); }  // read configuration
                 catch(std::runtime_error e){}               // if it doesn't exist, just ignore
                 
-                _saveToToml(depth?_getSubTomlTable(data):data, clear);
+                _saveToToml(_getSubTomlTable(data), clear);
                 
                 std::ofstream saveFile;
                 saveFile.open(confFilename);
@@ -240,11 +237,8 @@ namespace rtoml{
                                                             // if confFilename is specified, it overrides the filename
                 if(map==nullptr && var==nullptr)            // not initialized
                     throw std::invalid_argument("Error in vsr.load() with key "+_debug_getFullKeyString()+": trying to load an entry that was not initialized.");
-                bool depth=false;
-                if(confFilename.empty()){
+                if(confFilename.empty())
                     confFilename=this->getConfFilename();
-                    depth=true;
-                }
                 if(confFilename.empty())
                     throw std::invalid_argument("Error in vsr.load() with key "+_debug_getFullKeyString()+": the confFilename was not provided.");
                     
@@ -252,7 +246,7 @@ namespace rtoml{
                 try {data = toml::parse<toml::preserve_comments, tsl::ordered_map>(confFilename);}   
                 catch(std::exception& e){if(trip)throw;}
                 
-                _loadFromToml(depth?_getSubTomlTable(data):data, trip);
+                _loadFromToml(_getSubTomlTable(data), trip);
             }
     };
 }

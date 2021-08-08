@@ -48,7 +48,7 @@ load takes two optional arguments:
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;an exception will be thrown; otherwise, missing file/entries will be ignored  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;extra entries are always ignored  
 &nbsp;&nbsp;&nbsp;&nbsp; `std::string confFilename=""`  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if specified, this overrides the filename, see below for more details on behavior
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if specified, this overrides the filename
 
 NOTE: you cannot use `.get<type>` for uninitialized entries even thought they were present in the loaded file.  
 NOTE: you cannot load a file unless at least one entry has been added to the map object (would be pointless anyway without .get).
@@ -63,31 +63,11 @@ save takes two optional arguments:
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if true and the called object is a map, extra entries in the file will be deleted,  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;otherwise the new file will still contain unused entries (reformatted though)  
 &nbsp;&nbsp;&nbsp;&nbsp; `std::string confFilename=""`  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if specified, this overrides the filename, see below for more details on behavior
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if specified, this overrides the filename
 
-Note that each non-variable member of the map is a map itself, so you can call `vsr::save` and `vsr::load` on it. However, by default it loads/saves full entry depth: ie. the below example saves `["Map1"]["Map2"]["entry1"]` instead of just `["entry1"]`. Thus the purpose of this is to only update a portion of your config file, rather than the whole file. In this case setting `clear` will not remove any entries defined in `["Map1"]`, it just wont update them. If you however specify `confFilename`, this will only save the content of the map itself, without adding the whole hierarchy.
-~~~cpp
-    rtoml::vsr mapa("a.toml");
-    mapa["Map1"]["Map2"]["entry1"]=a;
-    mapa["Map1"]["Map2"].save(false);
-    mapa["Map1"]["Map2"].save(false, "b.toml");
-~~~
-This results in files `"a.toml"`:
-~~~toml
-    [Map1]
-    
-    
-        [Map1.Map2]
-        
-    
-        entry1 = 4
-~~~
-and `"b.toml"`:
-~~~toml
-    entry1 = 4
-~~~
+Note that each non-variable member of the map is a map itself, so you can call `vsr::save` and `vsr::load` on it. However, it loads/saves full entry depth: ie. the below example saves `["Map1"]["Map2"]["entry1"]` instead of just `["entry1"]`. Thus the purpose of this is to only update a portion of your config file, rather than the whole file. In this case setting `clear` will not remove any entries defined in `["Map1"]`, it just wont update them. If you specify `confFilename`, this simply overrides the top object's filename.
 
-It is also possible to assign one map to another - this makes the entry point to the other map. NOTE: if the assigned map is destroyed and the other map tries to access it, it will segfault. Also the assigned map's defined confFilename is overriden by the key and the map now behaves like a part of the map it was assigned to, ie. calling `vsr::save` without `confFilename` will save the whole tree, like in the example above.
+It is also possible to assign one map to another - this makes the entry point to the other map. NOTE: if the assigned map is destroyed and the other map tries to access it, it will segfault. Also the assigned map's defined confFilename is overriden by the key and the map now behaves like a part of the map it was assigned to, ie. calling `vsr::save` will show the whole hierarchy.
 ~~~cpp
     rtoml::vsr mapa;
     rtoml::vsr mapb;
