@@ -40,4 +40,9 @@ int main(){
     c=100;
     mapb.save(true);
     mapb.save(true, "b.toml");
+    
+    std::cerr<<"try changing a.toml within 10 seconds\n";
+    system("sleep 10\n");
+    std::cerr<<"mapa changed = "<<mapa.changed()<<"\n";
+    std::cerr<<"mapb changed = "<<mapb.changed()<<"\n";
 }

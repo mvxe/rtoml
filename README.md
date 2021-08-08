@@ -79,6 +79,14 @@ Assigning the map again will throw an error. The map can have at most one parent
 
 It is also possible to change the top object's save filename by using `void vsr::setConfFilename(std::string confFilename)`, and get it with `std::string vsr::getConfFilename()`. This can be called at any depth.
 
+Similar to `vsr::load`, `vsr::changed` loads the file but does not update the map, it just checks for differences. If there is a difference, it returns true, else false.
+~~~cpp
+    bool changed = mapa.changed();
+~~~
+changed takes one optional argument:  
+&nbsp;&nbsp;&nbsp;&nbsp; `std::string confFilename=""`  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if specified, this overrides the filename
+
 
 An usage example is given in example.cpp.
 
