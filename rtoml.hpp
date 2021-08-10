@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
- 
+
 #ifndef RTOML_H
 #define RTOML_H
 
@@ -33,6 +33,8 @@
 #include ".toml/toml.hpp"
 
 namespace rtoml{
+    template<typename>   struct is_atomic                 : std::false_type {};
+    template<typename T> struct is_atomic<std::atomic<T>> : std::true_type  {};
     class vsr{
         private:
             class _BVar{
@@ -46,19 +48,37 @@ namespace rtoml{
                     T* var;
                     _Var(T& ovar): var(&ovar){}
                     void save(toml::basic_value<toml::preserve_comments, tsl::ordered_map>& dst){
-                        if constexpr(std::is_arithmetic<T>::value || std::is_same<T, std::string>::value) dst=*var;
-                        else if constexpr(std::is_pointer<T>::value) dst=(*var)->get();
-                        else dst=var->get();
+                        if constexpr(!std::is_pointer<T>::value){
+                            if constexpr(std::is_arithmetic<T>::value || std::is_same<T, std::string>::value) dst=*var;
+                            else if constexpr(rtoml::is_atomic<T>::value) dst=var->load();
+                            else dst=var->get();
+                        }else{
+                            if constexpr(std::is_arithmetic<T*>::value || std::is_same<T*, std::string>::value) dst=**var;
+                            else if constexpr(rtoml::is_atomic<T*>::value) dst=(*var)->load();
+                            else dst=(*var)->get();
+                        }
                     }
                     void load(toml::basic_value<toml::preserve_comments, tsl::ordered_map>& src){
-                        if constexpr(std::is_arithmetic<T>::value || std::is_same<T, std::string>::value) *var=toml::get<T>(src);
-                        else if constexpr(std::is_pointer<T>::value) (*var)->set(toml::get<decltype((*var)->get())>(src));  // if it's a pointer to a class with get()/set()
-                        else var->set(toml::get<decltype(var->get())>(src));                                                // if it's a class with get()/set()
+                        if constexpr(!std::is_pointer<T>::value){
+                            if constexpr(std::is_arithmetic<T>::value || std::is_same<T, std::string>::value) *var=toml::get<T>(src);
+                            else if constexpr(rtoml::is_atomic<T>::value) var->store(toml::get<decltype(var->load())>(src));
+                            else var->set(toml::get<decltype(var->get())>(src));
+                        }else{
+                            if constexpr(std::is_arithmetic<T*>::value || std::is_same<T*, std::string>::value) **var=toml::get<T>(src);
+                            else if constexpr(rtoml::is_atomic<T*>::value) (*var)->store(toml::get<decltype((*var)->load())>(src));
+                            else (*var)->set(toml::get<decltype((*var)->get())>(src));
+                        }
                     }
                     bool changed(toml::basic_value<toml::preserve_comments, tsl::ordered_map>& src){
-                        if constexpr(std::is_arithmetic<T>::value || std::is_same<T, std::string>::value) return (*var!=toml::get<T>(src));
-                        else if constexpr(std::is_pointer<T>::value) return ((*var)->get()!=toml::get<decltype((*var)->get())>(src));
-                        else return (var->get()!=toml::get<decltype(var->get())>(src));
+                        if constexpr(!std::is_pointer<T>::value){
+                            if constexpr(std::is_arithmetic<T>::value || std::is_same<T, std::string>::value) return *var!=toml::get<T>(src);
+                            else if constexpr(rtoml::is_atomic<T>::value) return var->load()!=toml::get<decltype(var->load())>(src);
+                            else return var->get()!=toml::get<decltype(var->get())>(src);
+                        }else{
+                            if constexpr(std::is_arithmetic<T*>::value || std::is_same<T*, std::string>::value) return **var!=toml::get<T>(src);
+                            else if constexpr(rtoml::is_atomic<T*>::value) return (*var)->load()!=toml::get<decltype((*var)->load())>(src);
+                            else return (*var)->get()!=toml::get<decltype((*var)->get())>(src);
+                        }
                     }
             };
             _BVar* var{nullptr};
@@ -87,9 +107,9 @@ namespace rtoml{
             void _loadFromToml(toml::basic_value<toml::preserve_comments, tsl::ordered_map>& data, bool trip){
                 if(map!=nullptr){                           // initialized as a map - call load of all entries
                     for(auto& [key, val]:*map){
-                        try {val._loadFromToml(toml::find(data,key), trip);}   
+                        try {val._loadFromToml(toml::find(data,key), trip);}
                         catch(std::exception& e){if(trip)throw;}
-                    } 
+                    }
                 }else{                                      // initialized as a variable - load it
                     var->load(data);
                 }
@@ -97,7 +117,7 @@ namespace rtoml{
             bool _checkFromToml(toml::basic_value<toml::preserve_comments, tsl::ordered_map>& data){
                 if(map!=nullptr){                           // initialized as a map - call check of all entries
                     for(auto& [key, val]:*map){
-                        try {if(val._checkFromToml(toml::find(data,key))) return true;}   
+                        try {if(val._checkFromToml(toml::find(data,key))) return true;}
                         catch(std::exception& e){return true;}      // does not exist, return true
                     }
                     return false;
@@ -183,7 +203,7 @@ namespace rtoml{
                 if(map!=nullptr) throw std::invalid_argument("Error in vsr with key "+_debug_getFullKeyString()+": this entry is already initialized as a map.");
                 if(var==nullptr) var=new _Var<T>(nvar);
                 else ((_Var<T>*)(var))->var=&nvar;
-                return *(((_Var<T>*)(var))->var); 
+                return *(((_Var<T>*)(var))->var);
             }
             vsr& operator = (vsr& nvar){                    // constructor, set it equal to a another vsr (this makes it point to that vsr's map)
                  if(var!=nullptr) throw std::invalid_argument("Error in vsr with key "+_debug_getFullKeyString()+": this entry is already initialized as a variable.");
@@ -204,16 +224,16 @@ namespace rtoml{
                 (*map)[_key].key=_key;
                 return (*map)[_key];
             }
-            
+
             template <typename T> T* get(){                 // get the pointer to the underlying variable; you have to know and specify the variable's type in template
-                if(map!=nullptr)        
+                if(map!=nullptr)
                     throw std::invalid_argument("Error in vsr.<>get() with key "+_debug_getFullKeyString()+": trying to get a value of a vsr initialized as a map.");
-                else if(var==nullptr)   
+                else if(var==nullptr)
                     throw std::invalid_argument("Error in vsr.<>get() with key "+_debug_getFullKeyString()+": trying to get a value of a uninitialized vsr.");
                 return ((_Var<T>*)(var))->var;
             }
             std::vector<std::string> comments;              // free access to comments which are saved/loaded along with the variable
-            
+
             void setConfFilename(std::string confFilename){ // set the load/save (path+)filename; always modifies the top object's filename
                 if(parent!=nullptr) parent->setConfFilename(confFilename);
                 else key=confFilename;
@@ -222,7 +242,7 @@ namespace rtoml{
                 if(parent!=nullptr) return parent->getConfFilename();
                 else return key;
             }
-            void save(bool clear=false, std::string confFilename=""){   
+            void save(bool clear=false, std::string confFilename=""){
                                                             // if clear is true and the called object is a map, extra entries in the file will be deleted,
                                                             //      otherwise the new file will still contain unused entries (reformatted though)
                                                             // if confFilename is specified, it overrides the filename
@@ -232,20 +252,20 @@ namespace rtoml{
                     confFilename=this->getConfFilename();
                 if(confFilename.empty())
                     throw std::invalid_argument("Error in vsr.save() with key "+_debug_getFullKeyString()+": the confFilename was not provided.");
-                
+
                 toml::basic_value<toml::preserve_comments, tsl::ordered_map> data;
                 try{ data = toml::parse<toml::preserve_comments, tsl::ordered_map>(confFilename); }  // read configuration
                 catch(std::runtime_error e){}               // if it doesn't exist, just ignore
-                
+
                 _saveToToml(_getSubTomlTable(data), clear);
-                
+
                 std::ofstream saveFile;
                 saveFile.open(confFilename);
                 saveFile<<format(data);
                 saveFile.close();
             }
-            void load(bool trip=false, std::string confFilename=""){     
-                                                            // if trip is true, and the file does not contain all of the initialized variables or does not exist, 
+            void load(bool trip=false, std::string confFilename=""){
+                                                            // if trip is true, and the file does not contain all of the initialized variables or does not exist,
                                                             //      an exception will be thrown; otherwise, missing file/entries will be ignored
                                                             //      extra entries are always ignored
                                                             // if confFilename is specified, it overrides the filename
@@ -255,11 +275,11 @@ namespace rtoml{
                     confFilename=this->getConfFilename();
                 if(confFilename.empty())
                     throw std::invalid_argument("Error in vsr.load() with key "+_debug_getFullKeyString()+": the confFilename was not provided.");
-                    
+
                 toml::basic_value<toml::preserve_comments, tsl::ordered_map> data;
-                try {data = toml::parse<toml::preserve_comments, tsl::ordered_map>(confFilename);}   
+                try {data = toml::parse<toml::preserve_comments, tsl::ordered_map>(confFilename);}
                 catch(std::exception& e){if(trip)throw;}
-                
+
                 _loadFromToml(_getSubTomlTable(data), trip);
             }
             bool changed(std::string confFilename=""){
@@ -272,11 +292,11 @@ namespace rtoml{
                     confFilename=this->getConfFilename();
                 if(confFilename.empty())
                     throw std::invalid_argument("Error in vsr.hasChanged() with key "+_debug_getFullKeyString()+": the confFilename was not provided.");
-                    
+
                 toml::basic_value<toml::preserve_comments, tsl::ordered_map> data;
-                try {data = toml::parse<toml::preserve_comments, tsl::ordered_map>(confFilename);}   
+                try {data = toml::parse<toml::preserve_comments, tsl::ordered_map>(confFilename);}
                 catch(std::exception& e){return true;}      // the file does not exist - return true
-                
+
                 return _checkFromToml(_getSubTomlTable(data));
             }
     };
