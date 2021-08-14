@@ -123,7 +123,10 @@ namespace rtoml{
                 if(map!=nullptr){                           // initialized as a map - call check of all entries
                     for(auto& [key, val]:*map){
                         try {if(val._checkFromToml(toml::find(data,key))) return true;}
-                        catch(std::exception& e){if(val.var!=nullptr) return true;}         // var does not exist, return true (we dont care about empty maps)
+                        catch(std::exception& e){           // var does not exist, return true (we dont care about empty maps)
+                            if(val.var!=nullptr) return true;
+                            if(val.map!=nullptr) if(!val.map->empty())  return true;
+                        }
                     }
                     return false;
                 }else return var->changed(data);            // initialized as a variable - check it
