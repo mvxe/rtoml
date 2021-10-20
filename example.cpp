@@ -8,6 +8,12 @@ int main(){
     
     rtoml::vsr mapa("a.toml");
     mapa["abcd"]=a;
+    
+    int d[3]{1,2,3};
+    mapa["u"]=d[0];
+    mapa["b"]=d[1];
+    mapa["g"]=d[2];
+    
     std::string st="X+1-2*sin(Y)";
     mapa["x"]["xx"]=st;
     mapa["x"]["xx"].comments.push_back(" hello there!");

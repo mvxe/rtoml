@@ -82,7 +82,7 @@ namespace rtoml{
                     }
             };
             _BVar* var{nullptr};
-            std::map<std::string, vsr>* map{nullptr};
+            tsl::ordered_map <std::string, vsr>* map{nullptr};
             bool exmap{false};      //if true, it is an external map (do not deallocate in destructor)
             vsr* parent{nullptr};
             std::string key;        // save filename if parent==nullptr, else the key; redundant but reimplementing map for saving a bit of space is too much work
@@ -94,7 +94,7 @@ namespace rtoml{
                 if(parent!=nullptr) return parent->_getSubTomlTable(data)[key];
                 return data;
             }
-            void _saveToToml(toml::basic_value<toml::preserve_comments, tsl::ordered_map>& data, bool clear){
+            void _saveToToml(toml::basic_value<toml::preserve_comments, tsl::ordered_map>& data, bool clear) const{
                 data.comments()=comments;
                 if(map!=nullptr){                           // initialized as a map - call save of all entries
                     if(map->empty()) return;
@@ -109,7 +109,7 @@ namespace rtoml{
                     var->save(data);
                 }
             }
-            void _loadFromToml(toml::basic_value<toml::preserve_comments, tsl::ordered_map>& data, bool trip){
+            void _loadFromToml(toml::basic_value<toml::preserve_comments, tsl::ordered_map>& data, bool trip) const{
                 if(map!=nullptr){                           // initialized as a map - call load of all entries
                     for(auto& [key, val]:*map){
                         try {val._loadFromToml(toml::find(data,key), trip);}
@@ -119,7 +119,7 @@ namespace rtoml{
                     var->load(data);
                 }
             }
-            bool _checkFromToml(toml::basic_value<toml::preserve_comments, tsl::ordered_map>& data){
+            bool _checkFromToml(toml::basic_value<toml::preserve_comments, tsl::ordered_map>& data) const{
                 if(map!=nullptr){                           // initialized as a map - call check of all entries
                     for(auto& [key, val]:*map){
                         try {if(val._checkFromToml(toml::find(data,key))) return true;}
@@ -216,7 +216,7 @@ namespace rtoml{
             vsr& operator = (vsr& nvar){                    // constructor, set it equal to a another vsr (this makes it point to that vsr's map)
                  if(var!=nullptr) throw std::invalid_argument("Error in vsr with key "+_debug_getFullKeyString()+": this entry is already initialized as a variable.");
                  if(map!=nullptr && !exmap) delete map;
-                 if(nvar.map==nullptr) nvar.map=new std::map<std::string, vsr>;     // in case the external vsr is empty
+                 if(nvar.map==nullptr) nvar.map=new tsl::ordered_map<std::string, vsr>;     // in case the external vsr is empty
                  if(nvar.parent!=nullptr) throw std::invalid_argument("Error in vsr with key "+_debug_getFullKeyString()+": this map has already been assigned and has a parent");
                  map=nvar.map;
                  nvar.parent=parent;
@@ -226,7 +226,7 @@ namespace rtoml{
             }
             vsr& operator [](std::string _key) {            // find entry in map: use only if it has not been already intialized as a variable
                 if(var!=nullptr) throw std::invalid_argument("Error in vsr with key "+_debug_getFullKeyString()+": this entry is already initialized as a variable.");
-                if(map==nullptr) map=new std::map<std::string, vsr>;
+                if(map==nullptr) map=new tsl::ordered_map<std::string, vsr>;
                 (*map)[_key];
                 (*map)[_key].parent=this;
                 (*map)[_key].key=_key;
