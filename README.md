@@ -90,5 +90,5 @@ changed takes one optional argument:
 
 An usage example is given in example.cpp.
 
-NOTE: supported variable types: arithmetic types (see `std::is_arithmetic`) and `std::string`  
-however custom template classes with `typename T` (which has to be arithmetic or string) are supported if they have `T get()` and `set(T var)` functions defined
+NOTE: supported variable types: arithmetic types (see `std::is_arithmetic` ), `std::string` , `std::vector` and `std::unordered_map` ,  
+however custom template classes with `typename T` (one of the above types) are supported if they have `T get()` and `set(T var)` functions defined

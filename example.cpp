@@ -13,6 +13,10 @@ int main(){
     mapa["u"]=d[0];
     mapa["b"]=d[1];
     mapa["g"]=d[2];
+    std::vector<int> vec{1,2,3};
+    mapa["vec"]=vec;
+    std::unordered_map<std::string, double> map{{"a",1},{"b",2},{"c",3}};
+    mapa["map"]=map;
     
     std::string st="X+1-2*sin(Y)";
     mapa["x"]["xx"]=st;
