@@ -34,8 +34,8 @@ It is also possible to retrieve an entry directly by name (it must exist and you
 ~~~
 Furthermore, you can add comments to both entries and maps that are then visible in the .toml configuration file.
 ~~~cpp
-    mapa["x"]["xx"].comments.push_back("comment 1");
-    mapa["x"]["xx"].comments.push_back("comment 2");
+    mapa["x"]["xx"].comments().push_back("comment 1");
+    mapa["x"]["xx"].comments().push_back("comment 2");
 ~~~
 
 Once all entries have been initialized we can now load a file. This searches the file for entries matching those that have been initialized, and if found replaces the variable values with those from the file. Other entries are ignored.

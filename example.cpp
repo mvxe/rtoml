@@ -19,30 +19,32 @@ int main(){
     mapa["lvec"]=lvec;
     std::unordered_map<std::string, double> map{{"a",1},{"b",2},{"c",3}};
     mapa["map"]=map;
-    mapa["map"].comments.push_back(" Something about map");
+    mapa["map"].comments().push_back(" Something about map");
     
     std::string st="X+1-2*sin(Y)";
-    mapa["x"].comments.push_back(" Something about x");
+    mapa["x"].comments().push_back(" Something about x");
     mapa["x"]["xx"]=st;
-    mapa["x"]["xx"].comments.push_back(" hello there!");
-    mapa["x"]["xx"].comments.push_back(" sec line.");
+    mapa["x"]["xx"].comments().push_back(" hello there!");
+    mapa["x"]["xx"].comments().push_back(" sec line.");
     
     
     rtoml::vsr mapb;
     mapa["x"]["yy"]=mapb;
+    mapa["x"]["yy"].comments().push_back("indented section");
+    mapb.comments().push_back("indented section direct");
     mapb["xxx"]=b;
-    mapb["xxx"].comments.push_back(" Some random var.");
+    mapb["xxx"].comments().push_back(" Some random var.");
     double c=534;
     mapb["sd"]["zzz"]=c;
     std::string entryname="entry3";
     mapb["sd"][entryname]=a;
-    //mapb["sd"][entryname].comments.push_back(" Something about entry3");
     std::string longs("This a long single line string#########################################################################################################################################################");
     mapb["longs"]=longs;
     std::string longsnl="this is a line with newline\nnext line\nanother line\nlast line";
     mapb["longsnl"]=longsnl;
     
     mapa["x"]["yb"]["yy"]["rtdf"]=b;
+    mapa["x"]["yb"]["yy"].comments().push_back("multiindented section");
     
     mapa.load(false);
     

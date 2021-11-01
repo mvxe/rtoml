@@ -45,7 +45,7 @@ namespace rtoml{
                 public:
                     void virtual save(toml::basic_value<toml::preserve_comments, tsl::ordered_map>& dst){}
                     void virtual load(toml::basic_value<toml::preserve_comments, tsl::ordered_map>& src){}
-                    bool virtual changed(toml::basic_value<toml::preserve_comments, tsl::ordered_map>& src){}
+                    bool virtual changed(toml::basic_value<toml::preserve_comments, tsl::ordered_map>& src){return false;}
             };
             template <typename T> class _Var : public _BVar{
                 public:
@@ -108,14 +108,14 @@ namespace rtoml{
                 if(map!=nullptr){                           // initialized as a map - call save of all entries
                     if(map->empty()) return;
                     if(clear) data=toml::basic_value<toml::preserve_comments, tsl::ordered_map>();
-                    data.comments()=comments;
+                    data.comments()=_comments;
                     for(auto& [key, val]:*map){
                         if(val.map!=nullptr) if(val.map->empty()) continue;
                         if(val.map!=nullptr || val.var!=nullptr)
                             val._saveToToml(data[key], clear);
                     }
                 }else if(var!=nullptr){                                      // initialized as a variable - save it
-                    data.comments()=comments;
+                    data.comments()=_comments;
                     var->save(data);
                 }
             }
@@ -141,6 +141,52 @@ namespace rtoml{
                     return false;
                 }else return var->changed(data);            // initialized as a variable - check it
             }
+            std::string indent(std::string data){   // indent sections
+                std::size_t lineBegin=0;
+                std::size_t lineEnd=data.find('\n');
+                std::string sstr;
+                std::size_t pos;
+                int level=0;
+                int preceedingCommentNum=0;
+                bool checkpreceedingComments=false;
+                const std::string indentation="    ";
+                bool printingString=false;
+                while(lineEnd!=std::string::npos){
+                    sstr=data.substr(lineBegin,lineEnd-lineBegin);
+                    pos=sstr.find("\"\"\"");
+                    if(pos!=std::string::npos) printingString^=1;
+                    if(!printingString || pos!=std::string::npos){
+                        if(sstr[0]=='[' && sstr[sstr.size()-1]==']'){   // section
+                            level=std::count(sstr.begin(),sstr.end(),'.');
+                            checkpreceedingComments=true;
+                        }else if(sstr[0]=='#') preceedingCommentNum++;
+                        else preceedingCommentNum=0;
+                        
+                        // indent
+                        if(sstr.size()>1) for(int i=0;i!=level;i++){
+                            data.insert(lineBegin,indentation);
+                            lineBegin+=indentation.size();
+                            lineEnd+=indentation.size();
+                        }
+                        // indent previous comments
+                        pos=lineBegin;
+                        if(level>0 && checkpreceedingComments){
+                            checkpreceedingComments=false;
+                            while(preceedingCommentNum>0){
+                                pos=data.find_last_of('#',pos);
+                                data.insert(pos,indentation);
+                                lineEnd+=indentation.size();
+                                preceedingCommentNum--;
+                            }
+                        }
+                    }
+                    lineBegin=lineEnd+1;
+                    lineEnd=data.find('\n',lineBegin);
+                }
+                return data;
+            }
+            std::vector<std::string> _comments;
+            std::vector<std::string>* _exComments;
         public:
             vsr(){}
             vsr(std::string confFilename):key(confFilename){}   // you can also initialize the top object with the load/save filename
@@ -163,6 +209,7 @@ namespace rtoml{
                  nvar.parent=parent;
                  nvar.key=key;
                  exmap=true;
+                 _exComments=&nvar.comments();
                  return *this;
             }
             vsr& operator [](std::string _key) {            // find entry in map: use only if it has not been already intialized as a variable
@@ -181,7 +228,10 @@ namespace rtoml{
                     throw std::invalid_argument("Error in vsr.<>get() with key "+_debug_getFullKeyString()+": trying to get a value of a uninitialized vsr.");
                 return ((_Var<T>*)(var))->var;
             }
-            std::vector<std::string> comments;              // free access to comments which are saved/loaded along with the variable
+            std::vector<std::string>& comments(){
+                if(exmap) return *_exComments;
+                else return _comments;
+            }
 
             void setConfFilename(std::string confFilename){ // set the load/save (path+)filename; always modifies the top object's filename
                 if(parent!=nullptr) parent->setConfFilename(confFilename);
@@ -191,7 +241,7 @@ namespace rtoml{
                 if(parent!=nullptr) return parent->getConfFilename();
                 else return key;
             }
-            void save(bool clear=false, std::string confFilename="", int width=240, int precision=17){
+            void save(bool clear=false, std::string confFilename="", int width=160, int precision=10){
                                                             // if clear is true and the called object is a map, extra entries in the file will be deleted,
                                                             //      otherwise the new file will still contain unused entries (reformatted though)
                                                             // if confFilename is specified, it overrides the filename
@@ -212,7 +262,7 @@ namespace rtoml{
 
                 std::ofstream saveFile;
                 saveFile.open(confFilename);
-                saveFile<< std::setw(width) << std::setprecision(precision)<<data;
+                saveFile<<indent(toml::format(data,width,precision));
                 saveFile.close();
             }
             void load(bool trip=false, std::string confFilename=""){
