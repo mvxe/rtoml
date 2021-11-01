@@ -19,8 +19,10 @@ int main(){
     mapa["lvec"]=lvec;
     std::unordered_map<std::string, double> map{{"a",1},{"b",2},{"c",3}};
     mapa["map"]=map;
+    mapa["map"].comments.push_back(" Something about map");
     
     std::string st="X+1-2*sin(Y)";
+    mapa["x"].comments.push_back(" Something about x");
     mapa["x"]["xx"]=st;
     mapa["x"]["xx"].comments.push_back(" hello there!");
     mapa["x"]["xx"].comments.push_back(" sec line.");

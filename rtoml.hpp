@@ -105,16 +105,17 @@ namespace rtoml{
                 return data;
             }
             void _saveToToml(toml::basic_value<toml::preserve_comments, tsl::ordered_map>& data, bool clear) const{
-                data.comments()=comments;
                 if(map!=nullptr){                           // initialized as a map - call save of all entries
                     if(map->empty()) return;
                     if(clear) data=toml::basic_value<toml::preserve_comments, tsl::ordered_map>();
+                    data.comments()=comments;
                     for(auto& [key, val]:*map){
                         if(val.map!=nullptr) if(val.map->empty()) continue;
                         if(val.map!=nullptr || val.var!=nullptr)
                             val._saveToToml(data[key], clear);
                     }
                 }else if(var!=nullptr){                                      // initialized as a variable - save it
+                    data.comments()=comments;
                     var->save(data);
                 }
             }
