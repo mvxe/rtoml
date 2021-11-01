@@ -15,6 +15,8 @@ int main(){
     mapa["g"]=d[2];
     std::vector<int> vec{1,2,3};
     mapa["vec"]=vec;
+    std::vector<int> lvec{1,2,3,1,2,3,1,2,3,1,2,3,1,2,3,1,2,3,1,2,3,1,2,3,1,2,3,1,2,3,1,2,3,1,2,3,1,2,3,1,2,3,1,2,3,1,2,3,1,2,3,1,2,3,1,2,3,1,2,3,1,2,3,1,2,3,1,2,3};
+    mapa["lvec"]=lvec;
     std::unordered_map<std::string, double> map{{"a",1},{"b",2},{"c",3}};
     mapa["map"]=map;
     
@@ -26,15 +28,19 @@ int main(){
     
     rtoml::vsr mapb;
     mapa["x"]["yy"]=mapb;
-    mapa["x"]["yy"].comments.push_back(" a section.");
     mapb["xxx"]=b;
     mapb["xxx"].comments.push_back(" Some random var.");
     double c=534;
     mapb["sd"]["zzz"]=c;
     std::string entryname="entry3";
     mapb["sd"][entryname]=a;
-    mapb["sd"][entryname].comments.push_back(" Something about entry3");
+    //mapb["sd"][entryname].comments.push_back(" Something about entry3");
+    std::string longs("This a long single line string#########################################################################################################################################################");
+    mapb["longs"]=longs;
+    std::string longsnl="this is a line with newline\nnext line\nanother line\nlast line";
+    mapb["longsnl"]=longsnl;
     
+    mapa["x"]["yb"]["yy"]["rtdf"]=b;
     
     mapa.load(false);
     

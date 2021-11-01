@@ -109,7 +109,6 @@ namespace rtoml{
                 if(map!=nullptr){                           // initialized as a map - call save of all entries
                     if(map->empty()) return;
                     if(clear) data=toml::basic_value<toml::preserve_comments, tsl::ordered_map>();
-                    if(map->size()==1) for(auto& [key, val]:*map) if((*map)[key].comments.empty()) (*map)[key].comments.push_back("");  // prevent inline
                     for(auto& [key, val]:*map){
                         if(val.map!=nullptr) if(val.map->empty()) continue;
                         if(val.map!=nullptr || val.var!=nullptr)
@@ -140,75 +139,6 @@ namespace rtoml{
                     }
                     return false;
                 }else return var->changed(data);            // initialized as a variable - check it
-            }
-            std::string format(toml::basic_value<toml::preserve_comments, tsl::ordered_map>& data){   // fixes indentation, removes empty comments (needed to prevent inline)
-                std::string str = toml::format(data,80,10);                                           // tsl::ordered_map preserves insertion order
-                if(str.size()==0) return str;
-
-                std::size_t lineBegin=0;
-                std::size_t lineEnd=str.find('\n');
-                if(lineEnd==std::string::npos) lineEnd=str.size();
-                std::size_t pos;
-                std::string sstr;
-
-                int level=0;
-                const std::string indentation="    ";
-                const size_t indSize=indentation.size();
-                const bool addNewlineAfterEveryVar=true;
-
-                std::stack<std::size_t> commentPos;
-                for(;;){                                //goes over every line
-                    sstr=str.substr(lineBegin,lineEnd-lineBegin);
-
-                    if(sstr[0]=='#'){
-                        if(sstr.size()==1){             //empty comment... remove it
-                            str.erase(lineBegin,2);
-                            lineEnd=str.find('\n',lineBegin);
-                            continue;
-                        }
-                        commentPos.push(lineBegin);
-                    }else{
-                        bool isSecOrVar=false;
-                        if(sstr[0]=='['){
-                            pos=sstr.find(']');
-                            if(pos!=std::string::npos){ // there is [...]...
-                                level=0;
-                                isSecOrVar=true;
-                                for(std::size_t i=1;i!=pos-1;i++)
-                                    if(sstr[i]=='.') level++;
-                            }
-                        }
-
-                        if(addNewlineAfterEveryVar){
-                            size_t pos;
-                            if(!isSecOrVar){
-                                pos=sstr.find('#');
-                                if(pos!=std::string::npos) sstr=str.substr(0,pos);
-                                pos=sstr.find('=');
-                                if(pos!=std::string::npos) isSecOrVar=true;
-                            }
-                            if(isSecOrVar) str.insert(lineEnd+1,"\n");
-                        }
-
-                        for(int i=0;i!=level;i++){      // apply indentation
-                            str.insert(lineBegin,indentation);
-                            if(lineEnd!=std::string::npos) lineEnd+=indSize;
-                        }
-                        while(!commentPos.empty()){     // apply indentation to comments
-                            for(int i=0;i!=level;i++){
-                                str.insert(commentPos.top(),indentation);
-                                lineBegin+=indSize;
-                                if(lineEnd!=std::string::npos) lineEnd+=indSize;
-                            }
-                            commentPos.pop();
-                        }
-                    }
-
-                    if(lineEnd==std::string::npos) break;
-                    lineBegin=lineEnd+1;
-                    lineEnd=str.find('\n',lineBegin);
-                }
-                return str;
             }
         public:
             vsr(){}
@@ -260,7 +190,7 @@ namespace rtoml{
                 if(parent!=nullptr) return parent->getConfFilename();
                 else return key;
             }
-            void save(bool clear=false, std::string confFilename=""){
+            void save(bool clear=false, std::string confFilename="", int width=240, int precision=17){
                                                             // if clear is true and the called object is a map, extra entries in the file will be deleted,
                                                             //      otherwise the new file will still contain unused entries (reformatted though)
                                                             // if confFilename is specified, it overrides the filename
@@ -281,7 +211,7 @@ namespace rtoml{
 
                 std::ofstream saveFile;
                 saveFile.open(confFilename);
-                saveFile<<format(data);
+                saveFile<< std::setw(width) << std::setprecision(precision)<<data;
                 saveFile.close();
             }
             void load(bool trip=false, std::string confFilename=""){
