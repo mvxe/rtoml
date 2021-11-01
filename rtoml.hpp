@@ -85,7 +85,7 @@ namespace rtoml{
                             else return var->get()!=toml::get<decltype(var->get())>(src);
                         }else{
                             if constexpr(std::is_arithmetic<T*>::value || std::is_same<T*, std::string>::value
-                                || rtoml::is_vector<T*>::value || rtoml::is_unordered_map<T*>::valuee) return **var!=toml::get<T>(src);
+                                || rtoml::is_vector<T*>::value || rtoml::is_unordered_map<T*>::value) return **var!=toml::get<T>(src);
                             else if constexpr(rtoml::is_atomic<T*>::value) return (*var)->load()!=toml::get<decltype((*var)->load())>(src);
                             else return (*var)->get()!=toml::get<decltype((*var)->get())>(src);
                         }
